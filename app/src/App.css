@@ -3,10 +3,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  height: 100vh;
 }
 
 .app.touched {
   background-color: red;
+}
+
+.titile {
+padding: 20px;
+font-size: 30px;
+text-transform: uppercase;
 }
 
 .video {
@@ -26,3 +33,4 @@
   border:  1px solid rgba(0, 0, 0, 0.2);
   border-radius: 2px;
 }
+

@@ -117,6 +117,7 @@ function App() {
 
   return (
     <div className={`app ${touched ? 'touched' : ''}`}>
+      <h1 className="titile">Phần mềm phát hiện thay đổi</h1>
       <video
         ref={video}
         className="video"
