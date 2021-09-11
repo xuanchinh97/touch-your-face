@@ -1,19 +1,17 @@
-import React, { useEffect, useRef } from 'react';
-import './App.css';
-import { Howl } from 'howler';
+import React, { useEffect, useRef, useState } from 'react';
 import '@tensorflow/tfjs-backend-cpu';
-import * as tf from '@tensorflow/tfjs'
 import * as mobilenet from '@tensorflow-models/mobilenet'
 import * as knnClassifier from '@tensorflow-models/knn-classifier'
-import sourdURL from './assets/botayxuongbanoi.mp3'
-// const mobilenet = require('@tensorflow-models/mobilenet');
-// const knnClassifier = require('@tensorflow-models/knn-classifier');
+import { initNotifications, notify } from '@mycv/f8-notification';
+import sourdURL from './assets/hey_sondn.mp3'
+import * as tf from '@tensorflow/tfjs'
+import { Howl } from 'howler';
+import './App.css';
 
 var sound = new Howl({
   src: [sourdURL]
 });
 
-sound.play();
 
 const NOT_TOUCH_LABEL = 'not_touch'
 const TOUCHED_LABEL = 'touched'
@@ -24,6 +22,8 @@ function App() {
   const video = useRef();
   const model = useRef();
   const classifier = useRef();
+  const canPlaySound = useRef(true);
+  const [touched, setTouched] = useState(false)
 
   const init = async () => {
     console.log('init...');
@@ -35,6 +35,8 @@ function App() {
     classifier.current = knnClassifier.create();
 
     console.log('set up done');
+
+    initNotifications({ cooldown: 3000 });
 
   }
 
@@ -65,24 +67,30 @@ function App() {
   }
 
   const training = label => {
-    return new Promise(async resolve=> {
-      const embedding =model.current.infer(video.current, true)
-      classifier.current.addExample(embedding,label)
+    return new Promise(async resolve => {
+      const embedding = model.current.infer(video.current, true)
+      classifier.current.addExample(embedding, label)
       await sleep(100)
       resolve()
     })
   }
 
   const run = async () => {
-    const embedding =model.current.infer(video.current, true)
+    const embedding = model.current.infer(video.current, true)
     const result = await classifier.current.predictClass(embedding)
     console.log('label: ', result.label)
     console.log('confidences: ', result.confidences)
 
-    if(result.label === TOUCHED_LABEL && result.confidences[result.label] > TOUCHED_CONFIDENCE) {
+    if (result.label === TOUCHED_LABEL && result.confidences[result.label] > TOUCHED_CONFIDENCE) {
+      setTouched(true)
+      if(canPlaySound) {
+        sound.play();
+        canPlaySound.current = false
+        notify('Cảnh báo!!!', { body: 'Bạn vừa chạm tay lên mặt !!' });
+      }
 
     } else {
-      
+      setTouched(false)
     }
 
     await sleep(200)
@@ -90,13 +98,15 @@ function App() {
 
   }
 
-const sleep = (ms = 0) => {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
+  const sleep = (ms = 0) => {
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
 
   useEffect(() => {
     init();
-
+    sound.on('end', function(){
+      canPlaySound.current = true
+    });
 
     // cleanup
     return () => {
@@ -106,7 +116,7 @@ const sleep = (ms = 0) => {
 
 
   return (
-    <div className="app">
+    <div className={`app ${touched ? 'touched' : ''}`}>
       <video
         ref={video}
         className="video"
