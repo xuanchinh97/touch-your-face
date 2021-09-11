@@ -4,3 +4,21 @@
   align-items: center;
   justify-content: center;
 }
+
+.video {
+  width: 480px;
+  height: 360px;
+  background-color: aqua;
+}
+
+.control {
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 4px 16px;
+  font-size: 1.4rem;
+  margin: 16px;
+  border:  1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
